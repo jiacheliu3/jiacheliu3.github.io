@@ -317,8 +317,8 @@
 
                                 <div>
                                     <!-- 16:9 aspect ratio -->
-                                    <div class="embed-responsive embed-responsive-4by3">
-                                      <iframe class="embed-responsive-item" src="https://youtu.be/YpYIcUiItW4"></iframe>
+                                    <div class="embed-responsive embed-responsive-16by9">
+                                    <iframe id="fyp_video" class="embed-responsive-item" src="https://youtu.be/YpYIcUiItW4" frameborder="0" allowfullscreen></iframe>
                                   </div>
                               </div>
                           </div>
@@ -383,9 +383,8 @@
         </footer>
 
         <script type="text/javascript">
-        jQuery(document).ready(function ($) {
-            $('#tabs').tab();
-        });
+        var myVideo =  iframe.getElementById('fyp_video'); 
+        myVideo.mute();
         </script> 
 
         <!--necessary scripts and plugins-->
