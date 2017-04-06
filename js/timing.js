@@ -1,7 +1,7 @@
 console.log('Script starts');
 
 // set the date we're counting down to
-var start_date = new Date(2017, 0, 6, 10, 33, 0, 0).getTime();
+var start_date = new Date("Fri Jan 6 22:33:00 EST 2017").getTime();
  
 // variables for time units
 var days, hours, minutes, seconds;
