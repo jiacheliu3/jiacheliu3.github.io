@@ -1,4 +1,4 @@
-console.log('Script starts');
+console.log('Script starts and I want you to debrief');
 
 // set the date we're counting down to
 var start_date = new Date("Fri Jan 6 22:33:00 EST 2017").getTime();
