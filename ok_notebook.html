@@ -1,0 +1,410 @@
+<html>
+
+<head>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+    .parse {}
+
+    .result {}
+    </style>
+    <style>
+    .node circle {
+        fill: #fff;
+        stroke: steelblue;
+        stroke-width: 3px;
+    }
+
+    .node text {
+        font: 12px sans-serif;
+    }
+
+    .link {
+        fill: none;
+        stroke: #ccc;
+        stroke-width: 2px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div id="window">
+        </div>
+    </div>
+    <!-- End of wrapper -->
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+    <!-- Bootstrap -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!-- Mini require.js from https://github.com/letorbi/tarp.require -->
+    <script type="text/javascript" src="./js/require.min.js"></script>
+    <script>
+    // try require 
+    var ok = Tarp.require('./oK_ind');
+    if (!ok) {
+        console.log('Cannot load oK.js');
+    } else {
+        console.log('oK loaded');
+    }
+    </script>
+    <script>
+    var lineNum = 1;
+
+    // one env through the run
+    var ENV = ok.baseEnv();
+
+    // function appendLine(element) {
+    //     var newLine = $('<div class="row"><div class="col-lg-12">').find('.col-lg-12');
+
+    //     var preLine = $('<span class="input-group-addon" id="basic-addon1">');
+    //     preLine.text(lineNum);
+    //     var inLine = $('<input type="textarea" class="form-control" placeholder="Input K command(s)...">');
+    //     var postLine = $('<span class="input-group-btn">');
+
+    //     var execButton = $('<button class="btn btn-default" type="button" onClick="exec(this)">');
+    //     execButton.text("Run");
+    //     postLine.append(execButton);
+
+    //     var line = $('<div class="input-group">');
+    //     line.append(preLine, inLine, postLine);
+    //     newLine.append(line);
+
+    //     element.append(newLine);
+
+    //     lineNum++;
+    // }
+
+    function appendLine(element) {
+        var newLine = $('<div class="row"><div class="col-lg-12">').find('.col-lg-12');
+
+        var preLine = $('<span class="input-group-addon" id="basic-addon1">');
+        preLine.text(lineNum);
+        var inLine = $('<textarea class="form-control" id="exampleFormControlTextarea1" rows="3" placeholder="Input K command(s)...">');
+        var postLine = $('<span class="input-group-btn">');
+
+        var execButton = $('<button class="btn btn-default" type="button" onClick="exec(this)">');
+        execButton.text("Run");
+        postLine.append(execButton);
+
+        var line = $('<div class="input-group">');
+        line.append(preLine, inLine, postLine);
+        newLine.append(line);
+
+        element.append(newLine);
+
+        lineNum++;
+    }
+
+    function exec(element) {
+        var input = $(element).parent().siblings('textarea');
+        if (!input || input.length == 0) {
+            console.log('Error: Cannot find input');
+            return;
+        }
+        var toExec = input.val();
+        console.log('Exec ' + toExec);
+
+        // Append a new line
+        appendLine($('#window'));
+
+        // Exec and display result
+        try {
+            // ok exec
+            var got = ok.run(ok.parse(toExec), ENV);
+
+            // display parse result
+            var par = ok.parse(toExec);
+            displayParse($(element).closest('.col-lg-12'), par);
+
+            // display
+            displayResult($(element).closest('.col-lg-12'), got);
+            return got;
+        } catch (err) {
+            console.log("FAILED: " + input);
+            console.log(err.stack);
+            return;
+        }
+    }
+
+    function toJSON(data) {
+        var seen = [];
+        var replacer = function(key, value) {
+            if (value != null && typeof value == "object") {
+                if (seen.indexOf(value) >= 0) {
+                    return;
+                }
+                seen.push(value);
+            }
+            return value;
+        };
+        return JSON.stringify(data, replacer);
+    }
+
+    function displayParse(element, data) {
+        console.log(data);
+
+        var fig = $('<div class="well well-lg parse">');
+        element.append(fig);
+
+        // draw AST diagram
+        displayAST(fig, data);
+    }
+
+    function displayResult(element, data) {
+        console.log(data);
+
+        var fig = $('<div class="well well-lg result">');
+
+        fig.text(ok.format(data));
+
+        // add a badge showing the type
+        var type = ok.TN[data.t];
+        console.log('Type is: ' + type);
+
+        fig.attr('data-toggle', "tooltip");
+        fig.attr('title', "type: " + type);
+
+
+        element.append(fig);
+    }
+
+    appendLine($('#window'));
+    </script>
+    <!-- load the d3.js library -->
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script>
+    var verbValence = ['a', 'l', 'a-a', 'l-a', 'a-l', 'l-l', 'triad', 'tetrad'];
+    var adverbValence = ['mv/nv', 'dv', 'l-mv', 'l-dv', '3+v'];
+
+    function verbDesc(verbData){
+    	if(! verbData.v in ok.verbs){
+    		console.log('Invalid verb: '+verbData.v);
+    		return;
+    	}
+
+    	// TODO: add verb valence
+
+    }
+    // TODO
+    function adverbDesc(advData){
+
+    }
+
+    // convert k format to d3js format
+    function formatData(data) {
+        console.log('Formatting data: ');
+        console.log(data);
+        if (data.t == 0 || data.t == 1) {
+            return {
+            	v: data.v,
+            	desc: "type: "+ok.TN[data.t]
+            };
+        } else if (data.t == 2) {
+            return {
+                v: '`' + data.v,
+                desc: "type: "+ok.TN[data.t]
+            };
+        } else if (data.t == 3 || data.t == 4) {
+            var res = {
+                v: ok.format(data)
+            };
+            console.log('Formatted data: ');
+            console.log(res);
+            return res;
+        } else if (data.t == 5) {
+            console.log('Function type: ');
+            console.log(data);
+            return;
+        } else if (data.t == 6) {
+            console.log('View type: ');
+            console.log(data);
+            return;
+        } else if (data.t == 7) { // assignment
+            return {
+                v: data.v + ": " + formatData(data.r)
+            };
+        } else if (data.t == 8) {
+            //convert verb l and r to children
+            return {
+                v: data.v,
+                children: [formatData(data.l), formatData(data.r)],
+                desc: "verb name: " + 
+            };
+        } else if (data.t == 9) {
+            var res = {
+                v: data.verb.v + data.v,
+                children: [formatData(data.l), formatData(data.r)]
+            };
+            console.log(res);
+            return res;
+        } else if (data.t == 10) {
+            console.log('Return type is deprecated.');
+            console.log(data);
+            return;
+        } else if (data.t == 11) {
+            return 'NIL';
+        } else if (data.t == 12) {
+            console.log('Conditional type: ');
+            console.log(data);
+            return;
+        } else if (data.t == 13) {
+            console.log('Quote type: ');
+            console.log(data);
+            return;
+        } else {
+            console.log('Unknown type: ');
+            console.log(data);
+            return;
+        }
+    }
+
+    BRANCH_WIDTH = 100;
+    TREE_HEIGHT = 200;
+
+    function displayAST(element, data) {
+        // format data
+        var formatted = [];
+        for (var d in data) {
+            formatted.push(formatData(data[d]));
+        }
+        console.log('Formatted all data: ');
+        console.log(formatted);
+
+        // calculate height
+        var len = formatted.length;
+        console.log(len + ' trees to display');
+
+        // create panel
+        var margin = { top: 20, right: 120, bottom: 20, left: 120 },
+            width = 960 - margin.right - margin.left,
+            height = 200 * len - margin.top - margin.bottom;
+
+        var i = 0; // id
+
+        var tree = d3.layout.tree()
+            .size([height, width]);
+
+        var diagonal = d3.svg.diagonal()
+            .projection(function(d) { return [d.y, d.x]; });
+
+        var svg = d3.select($(element).get(0)).append("svg")
+            .attr("width", width + margin.right + margin.left)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // formatted.forEach(update);
+
+        for (var h = 0; h < formatted.length; h++) {
+            update(formatted[h], h);
+        }
+
+        function update(source, h) {
+
+            // Compute the new tree layout.
+            var the_nodes = tree.nodes(source),
+                links = tree.links(the_nodes);
+
+
+
+            console.log('The nodes: ');
+            console.log(the_nodes);
+
+            var positions = [
+                [100, 0 + h * TREE_HEIGHT]
+            ];
+
+
+            // Normalize for fixed-depth.
+            var q = 0;
+            the_nodes.forEach(function(d) {
+                console.log('Process node ');
+                console.log(d);
+                console.log(positions);
+                if (d.children) {
+                    if (!positions) {
+                        console.log('Error: Out of available positions!');
+                        d.x = 0;
+                        d.y = 0;
+                        return;
+                    }
+                    var p = positions.shift();
+                    d.x = p[0];
+                    d.y = p[1];
+
+                    // calculate positions and put into list
+                    if (d.children.length == 1) {
+                        positions.push([d.x + BRANCH_WIDTH, d.y]);
+                    } else if (d.children.length == 2) {
+                        positions.push([d.x + BRANCH_WIDTH, d.y - 50]);
+                        positions.push([d.x + BRANCH_WIDTH, d.y + 50]);
+                    } else if (d.children.length == 3) {
+                        positions.push([d.x + BRANCH_WIDTH, d.y - 50]);
+                        positions.push([d.x + BRANCH_WIDTH, d.y]);
+                        positions.push([d.x + BRANCH_WIDTH, d.y + 50]);
+                    } else if (d.children.length == 4) {
+                        positions.push([d.x + BRANCH_WIDTH, d.y - 50]);
+                        positions.push([d.x + BRANCH_WIDTH, d.y - 20]);
+                        positions.push([d.x + BRANCH_WIDTH, d.y + 20]);
+                        positions.push([d.x + BRANCH_WIDTH, d.y + 50]);
+                    } else {
+                        console.log('More than 4 children not implemented.');
+                    }
+                }
+                console.log('Positions now');
+                console.log(JSON.stringify(positions));
+            });
+
+            // Declare the nodes¦
+            var node = svg.selectAll("g.node")
+                .data(the_nodes, function(d) { return d.id || (d.id = ++i); });
+
+            // Enter the nodes.
+            var nodeEnter = node.enter().append("g")
+                .attr("class", "node")
+                .attr("transform", function(d) {
+                    return "translate(" + d.y + "," + d.x + ")";
+                });
+
+            nodeEnter.append("circle")
+                .attr("r", 10)
+                .style("fill", "#fff");
+
+            nodeEnter.append("text")
+                .attr("x", function(d) {
+                    return d.children ? -13 : 13;
+                })
+                .attr("dy", ".35em")
+                .attr("text-anchor", function(d) {
+                    return d.children ? "end" : "start";
+                })
+                .text(function(d) { return d.v; })
+                .style("fill-opacity", 1);
+
+            // hover events
+            nodeEnter.append("svg:title")
+            	.text(function(d){return d.desc});
+
+            console.log('Node enter: ');
+            console.log(nodeEnter);
+
+            // Declare the linksâ€¦
+            var link = svg.selectAll("path.link")
+                .data(links, function(d) { return d.target.id; });
+
+            // Enter the links.
+            link.enter().insert("path", "g")
+                .attr("class", "link")
+                .attr("d", diagonal);
+
+
+            console.log('Links: ');
+            console.log(link);
+
+        }
+    }
+    </script>
+</body>
+
+</html>
